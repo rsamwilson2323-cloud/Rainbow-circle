@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Rainbow Light Orbits – PC Enhanced</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #000013;
+    touch-action: none;
+  }
+  canvas {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// Resize handling
+function resize() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+onresize = resize;
+
+// Orbit array
+let orbits = [];
+
+// Input trackers
+let isPressed = false;
+let px = 0, py = 0;
+
+// Keyboard push forces
+let pushX = 0, pushY = 0;
+
+// Create orbit object
+function addOrbit(x, y) {
+  orbits.push({
+    x,
+    y,
+    r: 10,
+    angle: 0,
+    alpha: 1,
+    hue: Math.random() * 360
+  });
+}
+
+// Mouse controls
+document.addEventListener("mousedown", e => {
+  px = e.clientX;
+  py = e.clientY;
+  isPressed = true;
+  addOrbit(px, py);
+});
+
+document.addEventListener("mousemove", e => {
+  px = e.clientX;
+  py = e.clientY;
+});
+
+document.addEventListener("mouseup", () => {
+  isPressed = false;
+});
+
+// Touch controls
+document.addEventListener("touchstart", e => {
+  let t = e.touches[0];
+  px = t.clientX;
+  py = t.clientY;
+  isPressed = true;
+  addOrbit(px, py);
+});
+
+document.addEventListener("touchmove", e => {
+  let t = e.touches[0];
+  px = t.clientX;
+  py = t.clientY;
+});
+
+document.addEventListener("touchend", () => {
+  isPressed = false;
+});
+
+// Keyboard effects
+document.addEventListener("keydown", e => {
+  isPressed = true;
+
+  if (e.key === "ArrowLeft")  pushX = -2;
+  if (e.key === "ArrowRight") pushX =  2;
+  if (e.key === "ArrowUp")    pushY = -2;
+  if (e.key === "ArrowDown")  pushY =  2;
+
+  // When any key is pressed, spawn orbit at center
+  if (!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key)) {
+    px = canvas.width / 2;
+    py = canvas.height / 2;
+  }
+});
+
+document.addEventListener("keyup", e => {
+  isPressed = false;
+  pushX = 0;
+  pushY = 0;
+});
+
+// Draw orbit glow effect
+function drawOrbit(o) {
+  ctx.beginPath();
+  ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+
+  ctx.strokeStyle = `hsla(${o.hue},100%,60%,${o.alpha})`;
+  ctx.lineWidth = 6;
+
+  ctx.shadowColor = `hsla(${o.hue},100%,65%,1)`;
+  ctx.shadowBlur = 30;
+
+  ctx.stroke();
+}
+
+// MAIN ANIMATION LOOP
+function animate() {
+  ctx.fillStyle = "rgba(0,0,20,0.22)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (isPressed) {
+    addOrbit(px, py);
+  }
+
+  orbits.forEach((o, i) => {
+    drawOrbit(o);
+
+    // Expansion
+    o.r += 1.8;
+
+    // Hue shift
+    o.hue += 1.5;
+
+    // Fade out
+    o.alpha -= 0.025;
+
+    // Keyboard directional push
+    o.x += pushX;
+    o.y += pushY;
+
+    if (o.alpha <= 0) {
+      orbits.splice(i, 1);
+    }
+  });
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
+w
